@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gala Ticket Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #1e1e2f, #3c3c58);
+      color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .form-section {
+      background: #2b2b40;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      margin-bottom: 2rem;
+      width: 100%;
+      max-width: 500px;
+    }
+    input, select, button {
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      width: 100%;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 5px #f0c040;
+    }
+    button:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 10px rgba(240, 192, 64, 0.5);
+    }
+    input, select {
+      background-color: #f4f4f4;
+      color: #333;
+    }
+    button {
+      background-color: #f0c040;
+      color: #000;
+      cursor: pointer;
+      border: none;
+    }
+    #downloadBtn {
+      background-color: #00aaff;
+      color: white;
+    }
+    #shareBtn {
+      background-color: #25D366;
+      margin-top: 10px;
+      color: white;
+    }
+    .ticket {
+      background: #111;
+      color: #f4f4f4;
+      border: 2px solid #f0c040;
+      padding: 2rem;
+      border-radius: 10px;
+      width: 350px;
+      font-family: 'Courier New', monospace;
+      text-align: left;
+      position: relative;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.6s ease forwards;
+    }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .ticket h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: #f0c040;
+    }
+    .ticket p {
+      margin: 0.25rem 0;
+    }
+    .qr-code, .barcode {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .ticket-logo {
+      width: 80px;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+    }
+    .ticket-number {
+      font-size: 1.5rem;
+      letter-spacing: 3px;
+      margin-top: 1rem;
+      text-align: center;
+      border-top: 1px dashed #f0c040;
+      padding-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <audio id="ding" src="https://www.soundjay.com/button/sounds/button-29.mp3" preload="auto"></audio>
+  <div class="form-section">
+    <h1>🎫 Gala Night Ticket Generator</h1>
+    <input type="text" id="name" placeholder="Full Name" required />
+    <input type="text" id="contact" placeholder="Contact Info" required />
+    <input type="text" id="seat" placeholder="Seat Number" />
+    <select id="table">
+      <option value="Regular">Regular</option>
+      <option value="Table of 2">Table of 2 - 6K</option>
+      <option value="Table of 4">Table of 4 - 8K</option>
+    </select>
+    <button onclick="generateTicket()">Generate Ticket</button>
+    <button onclick="downloadImage()" id="downloadBtn" style="display:none;">Download Ticket Image</button>
+    <button onclick="shareWhatsApp()" id="shareBtn" style="display:none;">Share via WhatsApp</button>
+  </div>
+
+  <div id="ticket" class="ticket" style="display: none;">
+    <img src="logo.png" alt="Logo" class="ticket-logo">
+    <h2>🎶 Gala Night</h2>
+    <p><strong>Name:</strong> <span id="ticketName"></span></p>
+    <p><strong>Contact:</strong> <span id="ticketContact"></span></p>
+    <p><strong>Seat:</strong> <span id="ticketSeat"></span></p>
+    <p><strong>Table:</strong> <span id="ticketTable"></span></p>
+    <p><strong>Date:</strong> June 13, 2025</p>
+    <p><strong>Time:</strong> 6:00 PM</p>
+    <p><strong>Venue:</strong> Vision University</p>
+    <p><strong>DJ:</strong> DJ Austin & DJ FY</p>
+    <div class="qr-code">
+      <img id="qrCode" src="" alt="QR Code" crossorigin="anonymous" />
+    </div>
+    <div class="barcode">
+      <img id="barcodeImg" src="https://barcode.tec-it.com/barcode.ashx?data=0123456789&code=Code128&dpi=96" alt="Barcode" />
+    </div>
+    <div class="ticket-number">
+      TICKET NUMBER: <span id="ticketNumber">0123456789</span>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    function generateTicket() {
+      const name = document.getElementById("name").value;
+      const contact = document.getElementById("contact").value;
+      const seat = document.getElementById("seat").value || "N/A";
+      const table = document.getElementById("table").value;
+      const ticketNumber = Math.floor(100000000 + Math.random() * 900000000).toString();
+
+      if (!name || !contact) {
+        alert("Please enter all required fields.");
+        return;
+      }
+
+      document.getElementById("ticketName").textContent = name;
+      document.getElementById("ticketContact").textContent = contact;
+      document.getElementById("ticketSeat").textContent = seat;
+      document.getElementById("ticketTable").textContent = table;
+      document.getElementById("ticketNumber").textContent = ticketNumber;
+      document.getElementById("barcodeImg").src = `https://barcode.tec-it.com/barcode.ashx?data=${ticketNumber}&code=Code128&dpi=96`;
+
+      const qrData = `Gala Evening | Name: ${name} | Contact: ${contact} | Seat: ${seat} | Table: ${table} | Ticket: ${ticketNumber} | Date: June 15, 2025 | Time: 6:00 PM | Venue: Verish University`;
+      const qrURL = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrData)}&size=150x150`;
+      const qrImg = document.getElementById("qrCode");
+      qrImg.src = qrURL;
+      qrImg.onload = () => {
+        const ticketEl = document.getElementById("ticket");
+        ticketEl.style.display = "block";
+        ticketEl.classList.remove("fadeInUp");
+        void ticketEl.offsetWidth; // trigger reflow
+        ticketEl.classList.add("fadeInUp");
+        document.getElementById("downloadBtn").style.display = "inline-block";
+        document.getElementById("shareBtn").style.display = "inline-block";
+        document.getElementById("ding").play();
+      };
+    }
+
+    function downloadImage() {
+      html2canvas(document.querySelector("#ticket"), { useCORS: true }).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "gala_ticket.png";
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+
+    function shareWhatsApp() {
+      const name = document.getElementById("ticketName").textContent;
+      const contact = document.getElementById("ticketContact").textContent;
+      const seat = document.getElementById("ticketSeat").textContent;
+      const table = document.getElementById("ticketTable").textContent;
+      const ticketNumber = document.getElementById("ticketNumber").textContent;
+
+      const message = `🎟 *Gala Evening Ticket*\n👤 Name: ${name}\n📞 Contact: ${contact}\n🪑 Seat: ${seat}\n💺 Table: ${table}\n🎫 Ticket #: ${ticketNumber}\n📅 Date: June 15, 2025\n🕕 Time: 6:00 PM\n📍 Venue: Vision University\n🎧 DJ Austin & DJ FY`;
+
+      const whatsappURL = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(whatsappURL, '_blank');
+    }
+  </script>
+</body>
+</html>
